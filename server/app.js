@@ -1,24 +1,14 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+// /api/chat.js
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const multer = require('multer');
-const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
-const app = express();
-const port = process.env.PORT || 5000;
-
-app.use(cors());
-app.use(express.json());
-
-const apiKey = process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(apiKey);
-
-const sessions = {};
+// Configura aquí tu instancia de AI y cualquier configuración global.
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const systemInstruction = 'Eres un experto en plantas...';
 
-// Generar modelo de AI para cada nueva sesión
+// Supongamos que manejas las sesiones de chat aquí.
+let sessions = {};
+
 const getModel = (sessionId) => {
   if (!sessions[sessionId]) {
     sessions[sessionId] = {
@@ -32,7 +22,7 @@ const getModel = (sessionId) => {
   return sessions[sessionId].model;
 };
 
-app.post('/api/chat', async (req, res) => {
+module.exports = async (req, res) => {
   const { sessionId, message } = req.body;
   if (!sessionId || !message) {
     return res
@@ -41,7 +31,6 @@ app.post('/api/chat', async (req, res) => {
   }
 
   const model = getModel(sessionId);
-
   try {
     const result = await model.sendMessage({
       message,
@@ -57,9 +46,4 @@ app.post('/api/chat', async (req, res) => {
     console.error('Error al enviar el mensaje:', error);
     res.status(500).json({ error: 'Error al enviar el mensaje.' });
   }
-});
-
-app.use('/uploads', express.static('uploads'));
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+};
